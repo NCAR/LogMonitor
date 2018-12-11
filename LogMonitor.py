@@ -9,13 +9,28 @@ import socket
 import re
 import errno
 import argparse
-import importlib
+import imp
 
 # use this to check for ConfigMaster in python >= 3.4
-cm = importlib.find_loader("ConfigMaster")
-if cm is None:
+#import importlib
+#cm = importlib.find_loader("ConfigMaster")
+#found = cm is not None
+#if found:
+#    print("ConfigMaster.py is not found! You must add this to PYTHONPATH")
+#    print("It is found in GitHub under http://github.com/NCAR/ConfigMaster")
+#    exit(1)
+#else:
+#    print("FOUND")
+
+try:
+    imp.find_module('ConfigMaster')
+    found = True
+except ImportError:
+    found = False
+
+if found == False:
     print("ConfigMaster.py is not found! You must add this to PYTHONPATH")
-    print("It is found in GitHub under http://github.com/NCAR/ConfigMaster")
+    print("It is found in CVS under apps/monitoring/src/scripts")
     exit(1)
 
 from ConfigMaster import ConfigMaster
@@ -271,8 +286,14 @@ if __name__ == "__main__":
     msg['Subject'] = mSubject
     msg['From'] = mFrom
     msg['To'] = ", ".join(cf.opt['emailListTruncated'])
-    msg.attach(MIMEText(reportMsg, 'html'))
-    
+    msgText = MIMEText(reportMsg, 'html')
+
+    # insert line breaks every 500 characters -- some email servers have a 990 charlimit for lines
+    payload = msgText.get_payload()
+    payload = '\n'.join(payload[i:i+500] for i in range(0, len(payload), 500))
+    msgText.set_payload(payload)
+    msg.attach(msgText)
+
     print("sending email: ",msg.as_string())
     s = smtplib.SMTP('localhost')
     s.sendmail(mFrom, cf.opt['emailListTruncated'], msg.as_string())
@@ -288,7 +309,13 @@ if __name__ == "__main__":
     msg['Subject'] = mSubject
     msg['From'] = mFrom
     msg['To'] = ", ".join(cf.opt['emailList'])
-    msg.attach(MIMEText(reportMsg, 'html'))
+    msgText = MIMEText(reportMsg, 'html')
+
+    # insert line breaks every 500 characters -- some email servers have a 990 charlimit for lines
+    payload = msgText.get_payload()
+    payload = '\n'.join(payload[i:i+500] for i in range(0, len(payload), 500))
+    msgText.set_payload(payload)
+    msg.attach(msgText)
     
     print("sending email: ",msg.as_string())
     s = smtplib.SMTP('localhost')
