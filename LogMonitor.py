@@ -140,27 +140,27 @@ if __name__ == "__main__":
 
   yesterday = datetime.date.today() - datetime.timedelta(1)
   yesterdayYYYYMMDD = "{0:04d}{1:02d}{2:02d}".format(yesterday.year, yesterday.month, yesterday.day)
-  reportMsg += "#########################################################<br/>"
-  reportMsg += "##                  LOG FILE REPORT                    ##<br/>"
-  reportMsg += "#########################################################<br/>"
-  reportMsg += "##                  {0:04d}-{1:02d}-{2:02d}                         ##<br/>".format(yesterday.year, yesterday.month, yesterday.day)
-  reportMsg += "#########################################################<br/>"
+  reportMsg += "#########################################################<br/>\n"
+  reportMsg += "##                  LOG FILE REPORT                    ##<br/>\n"
+  reportMsg += "#########################################################<br/>\n"
+  reportMsg += "##                  {0:04d}-{1:02d}-{2:02d}                         ##<br/>\n".format(yesterday.year, yesterday.month, yesterday.day)
+  reportMsg += "#########################################################<br/>\n"
 
   if (cf.opt['logDir'] == None):
     reportMsg += "logDir is None.  Exciting..."
     exit(1)
 
   logDir = os.path.join(cf.opt['logDir'],yesterdayYYYYMMDD)
-  reportMsg += "Searching " + logDir + "<br/>"
-  reportMsg += "----------------------------------------------<br/>"
-  print("Searching " + logDir + "<br/>")
+  reportMsg += "Searching " + logDir + "<br/>\n"
+  reportMsg += "----------------------------------------------<br/>\n"
+  print("Searching " + logDir + "\n")
 
   if len(cf.opt['sendDetailsToDirs']) > 0:
-    reportMsg += "Report is being saved to files in:<br/>"
+    reportMsg += "Report is being saved to files in:<br/>\n"
     for outDir in cf.opt['sendDetailsToDirs']:
-      reportMsg += "\t" + os.path.join(outDir, yesterdayYYYYMMDD) + "<br/>"; 
+      reportMsg += "\t" + os.path.join(outDir, yesterdayYYYYMMDD) + "<br/>\n"; 
 
-    reportMsg += "---------------------------------------------<br/>"    
+    reportMsg += "---------------------------------------------<br/>\n"    
   
   reportMain = ""
   totalHits = 0
@@ -198,36 +198,36 @@ if __name__ == "__main__":
         continue
       
     
-    reportMain += "========================================<br/>"
+    reportMain += "========================================<br/>\n"
     log = os.path.join(logDir,logFile)
-    reportMain += "looking at: " + log + "<br/>"
-    print("looking at: " + log + "<br/>")
+    reportMain += "looking at: " + log + "<br/>\n"
+    print("looking at: " + log + "\n")
     cmd = "grep -i -C " + str(cf.opt['contextLines']) + " " + srchExpr + " " + log + exclExpr 
     print(cmd)
     grepChild = subprocess.Popen(cmd,stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, universal_newlines=True)
     grepOut = grepChild.communicate()
-    grepStdOut = grepOut[0].replace("\n","<br/>")
+    grepStdOut = grepOut[0].replace("\n","<br/>\n")
     grepStdErr = grepOut[1]
     if (len(grepStdOut) > 0):
-      reportMain += "----------------------------------------<br/>"
-      reportMain += "looking for: " + srchExpr + "<br/>"
-      reportMain += grepStdOut + "<br/>"
+      reportMain += "----------------------------------------<br/>\n"
+      reportMain += "looking for: " + srchExpr + "<br/>\n"
+      reportMain += grepStdOut + "<br/>\n"
 
     for searchString in cf.opt['searchStrings']:
       hits = grepStdOut.lower().count(searchString.lower())
       if hits > 0 or cf.opt['verboseSummary']:
-        reportMsg += "SUMMARY: " + str(hits) + " instances of " + searchString + " in " + logFile + "<br/>"
+        reportMsg += "SUMMARY: " + str(hits) + " instances of " + searchString + " in " + logFile + "<br/>\n"
       totalHits += hits
 
   if cf.opt['checkForSegFaults']:
     segHits = 0
-    reportMain += "<br/>==========================================<br/>"
-    reportMain += "Looking for segfaults in dmesg:<br/>"
-    reportMain += "----------------------------------------<br/>"
+    reportMain += "<br/>\n==========================================<br/>\n"
+    reportMain += "Looking for segfaults in dmesg:<br/>\n"
+    reportMain += "----------------------------------------<br/>\n"
     cmd = "dmesg -T | grep segfault"
     grepChild = subprocess.Popen(cmd,stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, universal_newlines=True)
     grepOut = grepChild.communicate()
-    grepStdOut = grepOut[0].replace("\n","<br/>")
+    grepStdOut = grepOut[0].replace("\n","<br/>\n")
     grepStdErr = grepOut[1]
     print("stdout: {}".format(grepStdOut))
     if (len(grepStdOut) > 0):
@@ -241,13 +241,13 @@ if __name__ == "__main__":
             if re.search(cf.opt['dmesgIgnoreRegex'],line):
               continue
           print("In time: {}".format(line))
-          reportMain += line + "<br/>"
+          reportMain += line + "<br/>\n"
           totalHits += 1
           segHits += 1
           
-    reportMsg += "SUMMARY: " + str(segHits) + " segfaults found in dmesg in last " + str(cf.opt['dmesgMaxAge']) + " minutes.<br/>"
+    reportMsg += "SUMMARY: " + str(segHits) + " segfaults found in dmesg in last " + str(cf.opt['dmesgMaxAge']) + " minutes.<br/>\n"
 
-  reportMsg += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br/>"
+  reportMsg += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br/>\n"
 
 
   reportMsg += reportMain
@@ -272,9 +272,10 @@ if __name__ == "__main__":
             raise
       
 
-
+      #remove <br>
       with open(filename, "w") as f:
-        f.write(reportMsg.replace("<br/>","\n"))
+        #f.write(reportMsg.replace("<br/>","\n"))
+        f.write(reportMsg.replace("<br/>",""))
 
   if cf.opt['truncateEmailAfterCharacter'] > 0 and len(cf.opt['emailListTruncated']) is not 0:
     truncReportMsg = reportMsg[:cf.opt['truncateEmailAfterCharacter']]
@@ -289,9 +290,6 @@ if __name__ == "__main__":
     msgText = MIMEText(reportMsg, 'html')
 
     # insert line breaks every 500 characters -- some email servers have a 990 charlimit for lines
-    payload = msgText.get_payload()
-    payload = '\n'.join(payload[i:i+500] for i in range(0, len(payload), 500))
-    msgText.set_payload(payload)
     msg.attach(msgText)
 
     print("sending email: ",msg.as_string())
@@ -312,9 +310,6 @@ if __name__ == "__main__":
     msgText = MIMEText(reportMsg, 'html')
 
     # insert line breaks every 500 characters -- some email servers have a 990 charlimit for lines
-    payload = msgText.get_payload()
-    payload = '\n'.join(payload[i:i+500] for i in range(0, len(payload), 500))
-    msgText.set_payload(payload)
     msg.attach(msgText)
     
     print("sending email: ",msg.as_string())
