@@ -1,5 +1,3 @@
 # LogMonitor
-Python utility to parse daily log directories and send an email report summarizing errors.
-NOTE: This version requires python 3. A python 2 version is available in RAL CVS.
-To get the required dependencies, run the following:
-./manage_externals/checkout_externals
+
+NOTE: This repo is archived and no longer active.  LogMonitor has been moved to https://github.com/NCAR/ral-python-util/blob/main/monitoring/LogMonitor.py

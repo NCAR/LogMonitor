@@ -22,6 +22,8 @@ import imp
 #else:
 #    print("FOUND")
 
+
+# test
 try:
     imp.find_module('ConfigMaster')
     found = True
